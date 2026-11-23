@@ -70,18 +70,26 @@
     ]),
   };
 
+  // Карточка ролика в ленте TikTok: <article data-e2e="recommend-list-item-container">.
+  const tiktokCard = (video) =>
+    video.closest('article, [data-e2e="recommend-list-item-container"]') ?? findCard(video);
+
   const tiktok = {
     key: 'tiktok',
     isActivePage: () => true,
     getId(video) {
-      const card = findCard(video);
+      // Обёртка плеера: <div id="xgwrapper-{индекс}-{id ролика}">. В ленте ссылок /video/ нет.
+      const wrap = video.closest('[id^="xgwrapper-"]')?.id.match(/^xgwrapper-\d+-(\d+)/)?.[1];
+      if (wrap) return wrap;
+      const card = tiktokCard(video);
       const href = card.querySelector('a[href*="/video/"]')?.getAttribute('href');
       return href?.match(/\/video\/(\d+)/)?.[1]
         ?? location.pathname.match(/\/video\/(\d+)/)?.[1]
         ?? fallbackId(video);
     },
-    isAd: (video) => hasAdLabel(findCard(video)),
+    isAd: (video) => hasAdLabel(tiktokCard(video)),
     nextButton: () => firstVisible([
+      'button[data-e2e="feed-navigation-next"]',
       'button[data-e2e="arrow-right"]',
       'button[aria-label="Go to next video"]',
       'button[aria-label="Следующее видео"]',
@@ -98,7 +106,14 @@
       return href?.match(/\/reel\/([\w-]+)/)?.[1] ?? fallbackId(video);
     },
     isAd: (video) => hasAdLabel(findCard(video)),
-    nextButton: () => null,
+    // «К следующему видео Reels» / «Next Reel». Стрелку ↓ Instagram не принимает.
+    nextButton: () => {
+      for (const el of document.querySelectorAll('button[aria-label], [role="button"][aria-label]')) {
+        const label = el.getAttribute('aria-label');
+        if (/след|next/i.test(label) && /reel/i.test(label) && isVisible(el)) return el;
+      }
+      return null;
+    },
   };
 
   function pickAdapter() {

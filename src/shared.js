@@ -22,6 +22,8 @@
     skipAds: true,
 
     platforms: { tiktok: true, youtube: true, instagram: true },
+
+    debug: false,         // лог в консоль страницы и подробности на плашке
   };
 
   const emptyBucket = () => ({
@@ -77,7 +79,13 @@
     platforms: { ...DEFAULT_SETTINGS.platforms, ...(stored?.platforms || {}) },
   });
 
+  // Лог отладочного режима. Флаг выставляет content script из настроек.
+  const log = (...args) => {
+    if (self.Swipey.debug) console.log('%c[Swipey]', 'color:#3987e5;font-weight:600', ...args);
+  };
+
   self.Swipey = {
+    debug: false, log,
     PLATFORMS, DEFAULT_SETTINGS, emptyBucket, dayKey, parseDayKey,
     fmtDuration, fmtClock, plural, mergeSettings,
   };

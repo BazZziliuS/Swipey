@@ -1,12 +1,14 @@
 // Точка входа content script: связывает трекер, автопрокрутку, плашку и фон.
 (async () => {
-  const { mergeSettings } = self.Swipey;
+  const { mergeSettings, log } = self.Swipey;
   const adapter = self.SwipeyAdapters.pickAdapter();
   if (!adapter) return;
   if (window.top !== window) return; // только главный фрейм
 
   let settings = mergeSettings((await chrome.storage.local.get('settings')).settings);
   const getSettings = () => settings;
+  self.Swipey.debug = settings.debug;
+  log('запущен', { сайт: adapter.key, путь: location.pathname });
 
   const tracker = new self.SwipeyTracker(adapter, getSettings);
   const scroller = new self.SwipeyAutoScroller(adapter, tracker, getSettings);
@@ -28,6 +30,10 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes.settings) return;
     settings = mergeSettings(changes.settings.newValue);
+    if (settings.debug !== self.Swipey.debug) {
+      self.Swipey.debug = settings.debug;
+      console.log('[Swipey] отладка', settings.debug ? 'включена' : 'выключена');
+    }
     applyPlatformSwitch();
     render();
   });
@@ -38,6 +44,7 @@
     if (dead) return;
     const delta = tracker.takePending();
     if (!delta.views && !delta.skips && !delta.completed && !delta.ads && delta.seconds < 0.05) return;
+    log('отправка в фон', { ...delta, seconds: +delta.seconds.toFixed(2) });
     try {
       chrome.runtime.sendMessage({ type: 'stats', platform: adapter.key, ts: Date.now(), delta })
         .catch(() => {});

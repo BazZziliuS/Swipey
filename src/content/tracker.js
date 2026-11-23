@@ -5,6 +5,7 @@
 // При зацикливании добавляется хвост до конца плюс новое начало.
 // Работает и в фоновой вкладке: опрос идёт по медиа-событиям, а не только по таймеру.
 (() => {
+  const { log } = self.Swipey;
   const MEDIA_EVENTS = ['timeupdate', 'play', 'playing', 'pause', 'ended', 'loadedmetadata'];
   const RESET_EVENTS = ['emptied', 'loadstart'];
 
@@ -36,7 +37,10 @@
         document.addEventListener(t, (e) => {
           // Плеер сменил источник (Shorts переиспользует один <video>).
           // Следующий замер не должен принять это за перемотку или цикл.
-          if (this.cur && e.target === this.cur.video) this.cur.reset = true;
+          if (this.cur && e.target === this.cur.video) {
+            this.cur.reset = true;
+            log('плеер сменил источник', e.type);
+          }
         }, true);
       }
       this.timer = setInterval(() => this.sample(), 1000);
@@ -102,6 +106,12 @@
         startedAt: Date.now(),
       };
       this.checkAd();
+      log('ролик', id, {
+        позиция: +t.toFixed(2),
+        длительность: Number.isFinite(video.duration) ? +video.duration.toFixed(2) : null,
+        реклама: this.cur.ad,
+        idИз: id.startsWith('src:') ? 'src видео' : id.startsWith('el:') ? 'элемент' : 'ссылка/URL',
+      });
       this.emit('start');
     }
 
@@ -110,6 +120,7 @@
       if (!c || c.ad || c.adChecks >= 4) return;
       c.adChecks++;
       c.ad = !!this.adapter.isAd(c.video);
+      if (c.ad) log('реклама', c.id);
     }
 
     progress() {
@@ -121,6 +132,7 @@
       if (c.reset) {
         c.reset = false;
         c.last = t < 3 ? 0 : t;
+        log('отсчёт с позиции', +c.last.toFixed(2));
         return;
       }
       if (v.paused) { c.last = t; return; }
@@ -133,6 +145,7 @@
         // Цикл: досмотрели до конца и начали заново.
         add = (d - c.last) + t;
         c.loops++;
+        log('цикл', c.id, '№' + c.loops);
         this.markComplete();
         this.emit('loop');
       }
@@ -150,11 +163,15 @@
         c.counted = true;
         if (c.ad) {
           this.pending.ads++;
+          log('засчитана реклама', c.id);
         } else if (!this.seen.has(c.id)) {
           this.seen.add(c.id);
           c.isNew = true;
           this.pending.views++;
           this.tab.views++;
+          log('засчитан просмотр', c.id);
+        } else {
+          log('повторный показ, просмотр не добавлен', c.id);
         }
       }
       if (c.counted && !c.completed && Number.isFinite(d) && d > 0 && t >= d * s.completeRatio) {
@@ -175,9 +192,14 @@
       const c = this.cur;
       // Пролистал, не дождавшись порога: это пропуск.
       // Мгновенные смены ID (< 300 мс) — дрожание плеера, их не считаем.
-      if (!c.counted && !c.ad && !this.seen.has(c.id) && Date.now() - c.startedAt > 300) {
-        this.pending.skips++;
-      }
+      const skipped = !c.counted && !c.ad && !this.seen.has(c.id) && Date.now() - c.startedAt > 300;
+      if (skipped) this.pending.skips++;
+      log('конец ролика', c.id, {
+        время: +c.played.toFixed(2),
+        итог: c.ad ? 'реклама' : skipped ? 'пропуск' : c.isNew ? 'просмотр' : c.counted ? 'повтор' : 'не учтён',
+        досмотрен: c.completed,
+        циклов: c.loops,
+      });
       this.emit('end');
       this.cur = null;
     }

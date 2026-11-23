@@ -238,6 +238,7 @@
       f[k].value = s[k];
     }
     f.skipAds.checked = s.skipAds;
+    f.debug.checked = s.debug;
     f.completePct.value = Math.round(s.completeRatio * 100);
     f.sessionGapMin.value = Math.round(s.sessionGap / 60);
     for (const p of ORDER) f['p_' + p].checked = s.platforms[p] !== false;
@@ -274,6 +275,7 @@
       limitMinutes: Math.round(num(f.limitMinutes.value, 0, 0, 1440)),
       manualPause: num(f.manualPause.value, D.manualPause, 0, 120),
       skipAds: f.skipAds.checked,
+      debug: f.debug.checked,
       viewThreshold: num(f.viewThreshold.value, D.viewThreshold, 0.5, 30),
       completeRatio: num(f.completePct.value, 90, 50, 100) / 100,
       sessionGap: Math.round(num(f.sessionGapMin.value, 5, 1, 120)) * 60,

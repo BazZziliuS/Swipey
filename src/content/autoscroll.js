@@ -2,6 +2,7 @@
 // поэтому работает и в фоновой вкладке.
 (() => {
   const { scrollContainerOf } = self.SwipeyAdapters;
+  const { log } = self.Swipey;
 
   class AutoScroller {
     constructor(adapter, tracker, getSettings) {
@@ -15,6 +16,7 @@
       this.failures = 0;
       this.secondsAtStart = 0;
       this.stopReason = null;
+      this.lastMethod = null; // каким способом удалось пролистать в последний раз
       this.listeners = new Set();
 
       tracker.on((type, cur) => {
@@ -33,10 +35,12 @@
       this.stopReason = null;
       this.secondsAtStart = this.tracker.tab.seconds;
       this.pausedUntil = 0;
+      log('автопрокрутка включена', { режим: this.getSettings().autoMode });
       this.notify();
     }
 
     disable(reason = null) {
+      if (this.enabled) log('автопрокрутка выключена', reason ?? 'вручную');
       this.enabled = false;
       this.stopReason = reason;
       this.notify();
@@ -47,6 +51,7 @@
     // Пользователь сам крутит ленту: не мешаем ему некоторое время.
     userInput() {
       if (!this.enabled) return;
+      if (!this.isPaused) log('ручная прокрутка, пауза', this.getSettings().manualPause + ' с');
       this.pausedUntil = Date.now() + this.getSettings().manualPause * 1000;
       this.notify();
     }
@@ -73,7 +78,10 @@
         return this.disable('limit');
       }
 
-      if (cur.ad && s.skipAds && cur.played > 0.3) return void this.next();
+      if (cur.ad && s.skipAds && cur.played > 0.3) {
+        log('пропускаю рекламу', cur.id);
+        return void this.next();
+      }
 
       if (s.autoMode === 'end') {
         const v = cur.video;
@@ -85,7 +93,10 @@
         return;
       }
 
-      if (cur.target == null) cur.target = this.targetFor(cur);
+      if (cur.target == null) {
+        cur.target = this.targetFor(cur);
+        log('переключу через', +cur.target.toFixed(1) + ' с');
+      }
       if (cur.played >= cur.target) this.next();
     }
 
@@ -96,16 +107,24 @@
       const video = this.tracker.cur?.video ?? this.tracker.pickActive();
 
       const strategies = [
-        () => { const b = this.adapter.nextButton(); if (!b) return false; b.click(); return true; },
-        () => { pressArrowDown(); return true; },
-        () => { scrollFeed(video); return true; },
+        ['кнопка', () => { const b = this.adapter.nextButton(); if (!b) return false; b.click(); return true; }],
+        ['стрелка вниз', () => { pressArrowDown(); return true; }],
+        ['прокрутка ленты', () => { scrollFeed(video); return true; }],
       ];
 
       let ok = false;
-      for (const run of strategies) {
-        if (!run()) continue;
-        if (await this.waitForChange(fromId, 1500)) { ok = true; break; }
+      for (const [name, run] of strategies) {
+        if (!run()) { log('способ недоступен:', name); continue; }
+        const t0 = performance.now();
+        if (await this.waitForChange(fromId, 1500)) {
+          ok = true;
+          this.lastMethod = name;
+          log('перелистнул:', name, Math.round(performance.now() - t0) + ' мс');
+          break;
+        }
+        log('не сработало:', name);
       }
+      if (!ok) log('не удалось перелистнуть', fromId, 'попытка', this.failures + 1);
 
       this.busy = false;
       if (ok) {

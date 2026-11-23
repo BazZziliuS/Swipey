@@ -34,6 +34,10 @@
     .sub { color: #a9a8a2; font-weight: 400; }
     .sub.on { color: #6fd3a8; }
     .sub.warn { color: #f0b35a; }
+    .dbg {
+      color: #8d8c85; font: 400 11px/1.3 ui-monospace, Consolas, monospace;
+      max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .btns { display: flex; gap: 2px; }
     button {
       all: unset; box-sizing: border-box;
@@ -64,6 +68,7 @@
           <div class="stats">
             <div class="main"></div>
             <div class="sub"></div>
+            <div class="dbg" hidden></div>
           </div>
           <div class="btns">
             <button class="toggle" title="Автопрокрутка (Alt+S)"></button>
@@ -74,6 +79,7 @@
       this.bar = root.querySelector('.bar');
       this.mainEl = root.querySelector('.main');
       this.subEl = root.querySelector('.sub');
+      this.dbgEl = root.querySelector('.dbg');
       this.toggleBtn = root.querySelector('.toggle');
 
       this.toggleBtn.addEventListener('click', () => handlers.onToggle());
@@ -122,6 +128,7 @@
 
     render(tracker, scroller) {
       if (!this.host.isConnected) return;
+      this.anchorTo(tracker.cur?.video ?? tracker.pickActive());
       const { views, seconds } = tracker.tab;
       this.mainEl.textContent = `${views} · ${fmtClock(seconds)}`;
 
@@ -138,6 +145,17 @@
       this.subEl.textContent = sub;
       this.subEl.className = 'sub ' + cls;
 
+      // Отладка: ID ролика, позиция и как сработало последнее перелистывание.
+      this.dbgEl.hidden = !self.Swipey.debug;
+      if (self.Swipey.debug) {
+        const c = tracker.cur;
+        const id = c ? (c.id.length > 18 ? '…' + c.id.slice(-16) : c.id) : 'нет ролика';
+        const dur = c && Number.isFinite(c.video.duration) ? c.video.duration.toFixed(1) : '?';
+        const pos = c ? `${c.played.toFixed(1)}/${dur}с${c.loops ? ' ↻' + c.loops : ''}${c.ad ? ' реклама' : ''}` : '';
+        this.dbgEl.textContent = `${id} ${pos} · ${scroller.lastMethod ?? '—'}`;
+        this.dbgEl.title = c ? c.id : '';
+      }
+
       const icon = scroller.enabled ? 'pause' : 'play';
       if (this.toggleBtn.dataset.icon !== icon) {
         this.toggleBtn.innerHTML = ICONS[icon];
@@ -145,17 +163,34 @@
       }
     }
 
+    // По умолчанию плашка стоит справа от ролика, на уровне его верхнего края:
+    // справа внизу у всех трёх сайтов колонка лайков и комментариев.
+    anchorTo(video) {
+      if (this.pos || !video) return;
+      const r = video.getBoundingClientRect();
+      const w = this.bar.offsetWidth || 220;
+      const GAP = 12;
+      let x = r.right + GAP;
+      // Справа не помещается: прижимаем к правому краю внутри ролика.
+      if (x + w > innerWidth - 8) x = Math.max(8, r.right - w - GAP);
+      const y = Math.max(8, r.top + GAP);
+      if (this.auto && Math.abs(this.auto.x - x) < 1 && Math.abs(this.auto.y - y) < 1) return;
+      this.auto = { x, y };
+      this.applyPos();
+    }
+
     applyPos() {
       const s = this.bar.style;
-      if (!this.pos) {
-        s.left = '16px'; s.bottom = '16px'; s.top = 'auto';
+      const p = this.pos ?? this.auto;
+      if (!p) {
+        s.right = '16px'; s.top = '80px'; s.left = 'auto'; s.bottom = 'auto';
         return;
       }
       const w = this.bar.offsetWidth || 220;
       const h = this.bar.offsetHeight || 44;
-      const x = Math.min(Math.max(0, this.pos.x), innerWidth - w);
-      const y = Math.min(Math.max(0, this.pos.y), innerHeight - h);
-      s.left = x + 'px'; s.top = y + 'px'; s.bottom = 'auto';
+      const x = Math.min(Math.max(0, p.x), innerWidth - w);
+      const y = Math.min(Math.max(0, p.y), innerHeight - h);
+      s.left = x + 'px'; s.top = y + 'px'; s.right = 'auto'; s.bottom = 'auto';
     }
 
     initDrag() {
@@ -180,6 +215,13 @@
       };
       this.bar.addEventListener('pointerup', end);
       this.bar.addEventListener('pointercancel', end);
+      // Двойной клик возвращает плашку на место у ролика.
+      this.bar.addEventListener('dblclick', (e) => {
+        if (e.composedPath().some((n) => n.tagName === 'BUTTON')) return;
+        this.pos = null;
+        this.auto = null;
+        this.save();
+      });
     }
   }
 
