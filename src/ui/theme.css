@@ -1,0 +1,99 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f4f2;
+  --surface: #fcfcfb;
+  --surface-2: #efeeeb;
+  --border: #e3e2de;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --text-3: #85847f;
+  --accent: #2a78d6;
+  --danger: #c4372f;
+  --grid: #e8e7e3;
+
+  --tiktok: #1baf7a;
+  --youtube: #eb6834;
+  --instagram: #2a78d6;
+
+  --heat-0: #efeeeb;
+  --heat-1: #cfe1f6;
+  --heat-2: #8db9ec;
+  --heat-3: #4a8ddf;
+  --heat-4: #1f5fae;
+
+  --radius: 10px;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #121211;
+    --surface: #1a1a19;
+    --surface-2: #232322;
+    --border: #2e2e2c;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --text-3: #8d8c85;
+    --accent: #3987e5;
+    --danger: #e66767;
+    --grid: #2a2a28;
+
+    --tiktok: #199e70;
+    --youtube: #d95926;
+    --instagram: #3987e5;
+
+    --heat-0: #232322;
+    --heat-1: #1d3657;
+    --heat-2: #24538f;
+    --heat-3: #3277c9;
+    --heat-4: #6ea8ef;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+
+button, select, input { font: inherit; color: inherit; }
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+.btn.primary:hover { opacity: 0.88; }
+.btn.danger { color: var(--danger); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+select, input[type="number"] {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+.muted { color: var(--text-2); }
+.faint { color: var(--text-3); }
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.dot.tiktok { background: var(--tiktok); }
+.dot.youtube { background: var(--youtube); }
+.dot.instagram { background: var(--instagram); }
+
+/* Подсказка для графиков */
+.tip {
+  position: fixed; z-index: 10; pointer-events: none;
+  background: var(--text); color: var(--surface);
+  padding: 6px 8px; border-radius: 6px;
+  font-size: 12px; line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0; transition: opacity 80ms;
+}
+.tip.show { opacity: 1; }

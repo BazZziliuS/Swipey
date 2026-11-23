@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Swipey — статистика</title>
+  <link rel="stylesheet" href="../ui/theme.css">
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <h1>Swipey</h1>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="stats" aria-selected="true">Статистика</button>
+        <button role="tab" data-tab="settings" aria-selected="false">Настройки</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ============ Статистика ============ -->
+    <div data-panel="stats">
+      <div class="seg" role="radiogroup" aria-label="Период" id="period">
+        <button data-period="day" aria-checked="true">Сегодня</button>
+        <button data-period="week" aria-checked="false">7 дней</button>
+        <button data-period="month" aria-checked="false">30 дней</button>
+        <button data-period="all" aria-checked="false">Всё время</button>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 id="chartTitle">Время по часам</h2>
+          <div class="legend">
+            <span><i class="dot tiktok"></i>TikTok</span>
+            <span><i class="dot youtube"></i>Shorts</span>
+            <span><i class="dot instagram"></i>Reels</span>
+          </div>
+        </div>
+        <div id="mainChart" class="chart"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card">
+          <h2>По платформам</h2>
+          <table class="table" id="platformTable"></table>
+        </section>
+
+        <section class="card" id="heatCard">
+          <h2>Когда листаете</h2>
+          <div id="heatmap" class="heatmap"></div>
+          <div class="heat-scale faint">
+            <span>меньше</span>
+            <i style="background:var(--heat-0)"></i><i style="background:var(--heat-1)"></i><i style="background:var(--heat-2)"></i><i style="background:var(--heat-3)"></i><i style="background:var(--heat-4)"></i>
+            <span>больше</span>
+          </div>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2>Сессии</h2>
+        <p class="faint small">Сессия — непрерывное листание. Новая начинается после <span id="gapLabel">5 мин</span> без роликов.</p>
+        <table class="table" id="sessionTable"></table>
+      </section>
+    </div>
+
+    <!-- ============ Настройки ============ -->
+    <div data-panel="settings" hidden>
+      <form id="settingsForm" class="settings">
+        <section class="card">
+          <h2>Автопрокрутка</h2>
+          <label class="field">
+            <span>Режим</span>
+            <select name="autoMode">
+              <option value="end">До конца ролика</option>
+              <option value="timer">По таймеру</option>
+              <option value="random">Случайный интервал</option>
+            </select>
+          </label>
+          <label class="field" data-show="timer">
+            <span>Листать через, сек</span>
+            <input type="number" name="timerSec" min="1" max="600" step="1">
+          </label>
+          <div class="field" data-show="random">
+            <span>Интервал, сек</span>
+            <span class="range">
+              от <input type="number" name="randomMin" min="1" max="600" step="1">
+              до <input type="number" name="randomMax" min="1" max="600" step="1">
+            </span>
+          </div>
+          <label class="field">
+            <span>Остановиться после, роликов</span>
+            <input type="number" name="limitViews" min="0" max="10000" step="1">
+            <small class="faint">0 — без лимита</small>
+          </label>
+          <label class="field">
+            <span>Остановиться после, минут</span>
+            <input type="number" name="limitMinutes" min="0" max="1440" step="1">
+            <small class="faint">0 — без лимита. Считается время роликов, а не часов.</small>
+          </label>
+          <label class="field">
+            <span>Пауза после ручной прокрутки, сек</span>
+            <input type="number" name="manualPause" min="0" max="120" step="1">
+          </label>
+          <label class="check">
+            <input type="checkbox" name="skipAds">
+            <span>Сразу пролистывать рекламу</span>
+          </label>
+        </section>
+
+        <section class="card">
+          <h2>Подсчёт</h2>
+          <label class="field">
+            <span>Ролик засчитан после, сек</span>
+            <input type="number" name="viewThreshold" min="0.5" max="30" step="0.5">
+            <small class="faint">Если пролистать раньше, это пропуск.</small>
+          </label>
+          <label class="field">
+            <span>Досмотрен при, %</span>
+            <input type="number" name="completePct" min="50" max="100" step="5">
+          </label>
+          <label class="field">
+            <span>Новая сессия после паузы, мин</span>
+            <input type="number" name="sessionGapMin" min="1" max="120" step="1">
+          </label>
+        </section>
+
+        <section class="card">
+          <h2>Сайты</h2>
+          <label class="check"><input type="checkbox" name="p_tiktok"><span>TikTok</span></label>
+          <label class="check"><input type="checkbox" name="p_youtube"><span>YouTube Shorts</span></label>
+          <label class="check"><input type="checkbox" name="p_instagram"><span>Instagram Reels</span></label>
+          <button type="button" class="btn" id="showOverlays">Вернуть скрытые плашки</button>
+        </section>
+
+        <div class="save-row">
+          <span class="faint" id="saved"></span>
+        </div>
+      </form>
+
+      <section class="card">
+        <h2>Данные</h2>
+        <p class="faint small">Всё хранится только в этом браузере.</p>
+        <div class="actions">
+          <button class="btn" id="exportJson">Экспорт JSON</button>
+          <button class="btn" id="exportCsv">Экспорт CSV</button>
+          <button class="btn" id="importBtn">Импорт JSON</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button class="btn danger" id="resetBtn">Сбросить статистику</button>
+        </div>
+        <p class="small" id="dataMsg"></p>
+      </section>
+    </div>
+  </main>
+
+  <script src="../shared.js"></script>
+  <script src="../ui/charts.js"></script>
+  <script src="stats.js"></script>
+</body>
+</html>

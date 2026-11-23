@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Swipey</title>
+  <link rel="stylesheet" href="../ui/theme.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <section class="today">
+    <div class="label muted">Сегодня</div>
+    <div class="headline"><span id="todayViews">0</span> <span id="todayViewsWord">роликов</span> · <span id="todayTime">0 с</span></div>
+    <ul class="platforms" id="platforms"></ul>
+  </section>
+
+  <section class="week">
+    <div class="row-between">
+      <span class="muted">Время за 7 дней</span>
+      <span class="faint" id="weekTotal"></span>
+    </div>
+    <div id="weekChart" class="chart"></div>
+  </section>
+
+  <section class="auto" id="auto">
+    <div class="row-between">
+      <span class="auto-title">Автопрокрутка</span>
+      <span class="faint" id="autoStatus"></span>
+    </div>
+    <div class="auto-controls">
+      <select id="mode" aria-label="Режим автопрокрутки">
+        <option value="end">До конца ролика</option>
+        <option value="timer">По таймеру</option>
+        <option value="random">Случайный интервал</option>
+      </select>
+      <button class="btn primary" id="toggle">Включить</button>
+      <button class="btn" id="next" title="Следующий ролик (Alt+N)" aria-label="Следующий ролик">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 4l6 4-6 4z M11 4h1.6v8H11z" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <p class="hint faint" id="autoHint"></p>
+  </section>
+
+  <footer>
+    <button class="link" id="openStats">Статистика и настройки</button>
+    <span class="faint">Alt+S · Alt+N · Alt+H</span>
+  </footer>
+
+  <script src="../shared.js"></script>
+  <script src="../ui/charts.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+.top { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+.top-inner { display: flex; align-items: center; justify-content: space-between; height: 52px; }
+.top h1 { font-size: 16px; }
+
+.tabs { display: flex; gap: 4px; }
+.tabs button {
+  border: 0; background: none; padding: 6px 10px; border-radius: 7px; cursor: pointer; color: var(--text-2);
+}
+.tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--text); font-weight: 600; }
+
+main.wrap { padding-top: 24px; padding-bottom: 48px; }
+
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 9px; padding: 3px; margin-bottom: 16px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 7px; cursor: pointer; color: var(--text-2); }
+.seg button[aria-checked="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.kpi .k-label { color: var(--text-2); font-size: 12px; }
+.kpi .k-value { font-size: 22px; font-weight: 600; margin-top: 2px; letter-spacing: -0.01em; }
+.kpi .k-sub { color: var(--text-3); font-size: 12px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.card h2 { font-size: 14px; margin-bottom: 12px; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.card-head h2 { margin: 0; }
+.legend { display: flex; gap: 12px; font-size: 12px; color: var(--text-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.chart { min-height: 200px; }
+.empty-note { color: var(--text-3); padding: 24px 0; text-align: center; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-2 > .card { margin-bottom: 16px; }
+@media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font-weight: 500; color: var(--text-3); font-size: 12px; padding: 0 8px 6px 0; }
+.table td { padding: 7px 8px 7px 0; border-top: 1px solid var(--border); }
+.table .r { text-align: right; }
+.table .name { display: flex; align-items: center; gap: 8px; }
+
+.heatmap { display: grid; grid-template-columns: 22px repeat(24, 1fr); gap: 2px; font-size: 10px; color: var(--text-3); }
+.heatmap .cell { aspect-ratio: 1; border-radius: 2px; background: var(--heat-0); min-width: 0; }
+.heatmap .rl { align-self: center; }
+.heatmap .cl { text-align: center; }
+.heat-scale { display: flex; align-items: center; gap: 3px; font-size: 11px; margin-top: 10px; justify-content: flex-end; }
+.heat-scale i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.heat-scale span { margin: 0 4px; }
+
+.small { font-size: 12px; margin: -6px 0 12px; }
+
+/* настройки */
+.settings .field { display: grid; grid-template-columns: 1fr 160px; align-items: center; gap: 4px 16px; padding: 8px 0; border-top: 1px solid var(--border); }
+.settings .field:first-of-type { border-top: 0; }
+.settings .field small { grid-column: 1 / -1; }
+.settings .field input, .settings .field select { width: 100%; }
+.settings .range { display: flex; align-items: center; gap: 6px; color: var(--text-2); }
+.settings .range input { width: 60px; }
+.check { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); }
+#showOverlays { margin-top: 10px; }
+.save-row { height: 20px; margin: -8px 0 8px; font-size: 12px; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+#dataMsg { margin: 10px 0 0; color: var(--text-2); }
+#dataMsg:empty { display: none; }
+
+@media (max-width: 520px) {
+  .settings .field { grid-template-columns: 1fr; }
+}
